@@ -9,13 +9,7 @@ module.exports = function(app){
         console.log('Connect Page');
     });
 
-    // 일반 로그인 아이디 체크
-    app.get('/CheckArknightsEmail', function(req, res){
-        var email = req.query.email;
-        var password = req.query.password;
-        var sql = 'SELECT * FROM userdata WHERE user_email=? AND password=?';
-        var params = [email, password];
-        
+    dbProcesser(){
         con.query(sql, params, function (error, results, fields) {
             console.log('Request[Check] : ' + email);
 
@@ -30,7 +24,42 @@ module.exports = function(app){
                 res.send(user_id);
             }
         });
-    });
+    }
+    }
+
+    CheckEmailProcCB(req, res){
+        var email = req.query.email;
+        var password = req.query.password;
+        var sql = 'SELECT * FROM userdata WHERE user_email=? AND password=?';
+        var params = [email, password];
+        
+        dbProcesser()
+    }
+
+    app.get('/CheckArknightsEmail',CheckEmailProcCB);
+
+    // 일반 로그인 아이디 체크
+    // app.get('/CheckArknightsEmail', function(req, res){
+    //     var email = req.query.email;
+    //     var password = req.query.password;
+    //     var sql = 'SELECT * FROM userdata WHERE user_email=? AND password=?';
+    //     var params = [email, password];
+        
+    //     con.query(sql, params, function (error, results, fields) {
+    //         console.log('Request[Check] : ' + email);
+
+    //         if(results == ''){
+    //             console.log('Result[Check] : fail');
+    //             res.send('check_fail');
+    //         }
+    //         else{     
+    //             var user_id = "";
+    //             user_id += results[0].user_id;
+    //             console.log('Result[Check] : success');
+    //             res.send(user_id);
+    //         }
+    //     });
+    // });
 
     // 구글 로그인 아이디체크
     app.get('/CheckGoogleEmail', function(req, res){
