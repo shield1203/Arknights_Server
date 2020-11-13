@@ -1,3 +1,5 @@
+const { json } = require('body-parser');
+
 module.exports = function(app){
     var mysql = require('mysql');
     var dbData = require('./dbData');
@@ -9,7 +11,13 @@ module.exports = function(app){
         console.log('Connect Page');
     });
 
-    dbProcesser(){
+    // 일반 로그인 아이디 체크
+    app.get('/CheckArknightsEmail', function(req, res){
+        var email = req.query.email;
+        var password = req.query.password;
+        var sql = 'SELECT * FROM userdata WHERE user_email=? AND password=?';
+        var params = [email, password];
+        
         con.query(sql, params, function (error, results, fields) {
             console.log('Request[Check] : ' + email);
 
@@ -24,42 +32,7 @@ module.exports = function(app){
                 res.send(user_id);
             }
         });
-    }
-    }
-
-    CheckEmailProcCB(req, res){
-        var email = req.query.email;
-        var password = req.query.password;
-        var sql = 'SELECT * FROM userdata WHERE user_email=? AND password=?';
-        var params = [email, password];
-        
-        dbProcesser()
-    }
-
-    app.get('/CheckArknightsEmail',CheckEmailProcCB);
-
-    // 일반 로그인 아이디 체크
-    // app.get('/CheckArknightsEmail', function(req, res){
-    //     var email = req.query.email;
-    //     var password = req.query.password;
-    //     var sql = 'SELECT * FROM userdata WHERE user_email=? AND password=?';
-    //     var params = [email, password];
-        
-    //     con.query(sql, params, function (error, results, fields) {
-    //         console.log('Request[Check] : ' + email);
-
-    //         if(results == ''){
-    //             console.log('Result[Check] : fail');
-    //             res.send('check_fail');
-    //         }
-    //         else{     
-    //             var user_id = "";
-    //             user_id += results[0].user_id;
-    //             console.log('Result[Check] : success');
-    //             res.send(user_id);
-    //         }
-    //     });
-    // });
+    });
 
     // 구글 로그인 아이디체크
     app.get('/CheckGoogleEmail', function(req, res){
@@ -355,23 +328,47 @@ module.exports = function(app){
         });      
     };
 
-    // Json파일추가 테스트
-    app.get('/TestJson', function(req, res){
+    // 팀 조회
+    app.get('/Teams', function(req, res){
         var id = req.query.id;
-        var value = req.query.value;
-        var sql = 'INSERT INTO jsontest (idid, my_json) VALUES(?, ?)';
-        var params = [id, value];
-        
-        con.query(sql, params, function (error, results, fields) {
-            console.log('Request[TestJson Insert] : ' + id);
+        var sql = 'SELECT teams FROM userdata WHERE user_id=?';
+        var params = [id];
 
-            if(error){
-                console.log('Request[TestJson Insert] : fail');
-                res.send('fail');
+        con.query(sql, params, function (error, results, fields) {
+            console.log('Request[Teams] : ' + id);
+
+            if(results.teams == null){
+                var path = './TeamData/Empty_Team.json';
+                fs.readFile(path, function(err, data){
+                    if(err){
+                        res.send('');
+                        console.log(err);
+                    } 
+                    else{   
+                        res.send(data.toString());
+                        console.log(data.toString());
+                    }
+                });
             }
             else{
-                console.log('Request[TestJson Insert] : success');
-                res.send('success');
+                res.send(JSON.stringify(results));
+            }
+        });
+    });
+
+    // 팀 편성
+    app.post('/TeamsChange', function(req, res){
+        var id = req.query.id;
+        var teams = JSON.stringify(req.body)
+
+        var sql = 'UPDATE userdata SET teams=? WHERE user_id=?';
+        var params = [teams, id];
+
+        con.query(sql, params, function (error, results, fields) {
+            console.log('Request[TeamChange] : ' + id);
+
+            if(error){
+                console.log(error);
             }
         });
     });
