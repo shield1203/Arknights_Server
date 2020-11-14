@@ -336,8 +336,9 @@ module.exports = function(app){
 
         con.query(sql, params, function (error, results, fields) {
             console.log('Request[Teams] : ' + id);
+            console.log(results[0]);
 
-            if(results.teams == null){
+            if(results[0].teams == null){
                 var path = './TeamData/Empty_Team.json';
                 fs.readFile(path, function(err, data){
                     if(err){
@@ -346,12 +347,12 @@ module.exports = function(app){
                     } 
                     else{   
                         res.send(data.toString());
-                        console.log(data.toString());
+                        //console.log(data.toString());
                     }
                 });
             }
             else{
-                res.send(JSON.stringify(results));
+                res.send(results[0].teams);
             }
         });
     });
@@ -361,12 +362,12 @@ module.exports = function(app){
         var id = req.query.id;
         var teams = JSON.stringify(req.body)
 
+        console.log('Request[TeamChange] : ' + teams);
+
         var sql = 'UPDATE userdata SET teams=? WHERE user_id=?';
         var params = [teams, id];
 
         con.query(sql, params, function (error, results, fields) {
-            console.log('Request[TeamChange] : ' + id);
-
             if(error){
                 console.log(error);
             }
