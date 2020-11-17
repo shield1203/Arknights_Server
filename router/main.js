@@ -236,7 +236,9 @@ module.exports = function(app){
             }
             else{     
                 console.log('Result[Check] : success');
-                res.send(results[0].user_id);
+                var id = "";
+                id += results[0].user_id;
+                res.send(id);
             }
         });
     }
@@ -248,7 +250,9 @@ module.exports = function(app){
             }
             else{     
                 console.log('Result[Check] : success');
-                res.send(results[0].user_id);
+                var id = "";
+                id += results[0].user_id;
+                res.send(id);
             }
         });
     }
@@ -284,6 +288,7 @@ module.exports = function(app){
     };
 
     var LoginResult = function(res, sql, params){
+        console.log('ddd');
         con.query(sql, params, function (error, results, fields) {
             if(results == ''){
                 console.log('Result[Login] : fail');
