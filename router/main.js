@@ -4,182 +4,72 @@ module.exports = function(app){
     var mysql = require('mysql');
     var dbData = require('./dbData');
     var con = mysql.createConnection(dbData);
-    var fs =require('fs');
+    var fs = require('fs');
     
     app.get('/', function(req, res, next){
         res.send('ArKnights Server Page');
         console.log('Connect Page');
     });
 
-    // 일반 로그인 아이디 체크
-    app.get('/CheckArknightsEmail', function(req, res){
-        var email = req.query.email;
-        var password = req.query.password;
-        var sql = 'SELECT * FROM userdata WHERE user_email=? AND password=?';
-        var params = [email, password];
-        
-        con.query(sql, params, function (error, results, fields) {
-            console.log('Request[Check] : ' + email);
+//// Router module //////////////////////////////////
 
-            if(results == ''){
-                console.log('Result[Check] : fail');
-                res.send('check_fail');
-            }
-            else{     
-                var user_id = "";
-                user_id += results[0].user_id;
-                console.log('Result[Check] : success');
-                res.send(user_id);
-            }
-        });
-    });
+    // 일반 로그인 아이디 체크
+    var ArknightsLogin = function(req, res){
+        var sql = 'SELECT * FROM userdata WHERE user_email=? AND password=?';
+        var params = [req.query.email, req.query.password];
+        
+        console.log('Request[Check] : ' + req.query.email);
+        CheckArknightsLoginData(res, sql, params);
+    }
 
     // 구글 로그인 아이디체크
-    app.get('/CheckGoogleEmail', function(req, res){
-        var googleEmail = req.query.googleEmail;
+    var GoogleLogin = function(req, res){
         var sql = 'SELECT * FROM userdata WHERE google_email=?';
-        var params = [googleEmail];
+        var params = [req.query.googleEmail];
         
-        con.query(sql, params, function (error, results, fields) {
-            console.log('Request[Check] : ' + googleEmail);
-
-            if(results == ''){
-                SignUpGoogleEmail(googleEmail);
-                
-                con.query(sql, params, function (error, results, fields) {        
-                    if(results == ''){
-                        console.log('Result[Check] : fail');
-                        res.send('check_fail');
-                    }
-                    else{     
-                        var user_id = "";
-                        user_id += results[0].user_id;
-                        console.log('Result[Check] : success');
-                        res.send(user_id);
-                    }
-                });
-            }
-            else{     
-                var user_id = "";
-                user_id += results[0].user_id;
-                console.log('Result[Check] : success');
-                res.send(user_id);
-            }
-        });
-    });
-
+        console.log('Request[Check] : ' + req.query.googleEmail);
+        CheckGoogleLoginData(res, req.query.googleEmail, sql, params);
+    }
+    
     // 로그인
-    app.get('/Login', function(req, res){
-        var id = req.query.id;
+    var Login = function(req, res){
         var sql = 'SELECT * FROM userdata WHERE user_id=?';
-        var params = [id];
+        var params = [req.query.id];
         
-        con.query(sql, params, function (error, results, fields) {
-            console.log('Request[Login] :' + id);
-
-            if(results == ''){
-                console.log('Result[Login] : fail');
-                res.send('login_fail');
-            }
-            else{     
-                console.log('Result[Login] : success');
-                console.log(results);
-                res.send(results);
-            }
-        });
-    });
+        console.log('Request[Login] :' + req.query.id);
+        LoginResult(res, sql, params);
+    }
 
     // 회원가입
-    app.get('/SignUp', function(req, res){
-        var email = req.query.email;
-        var password = req.query.password;
+    var SignUp = function(req, res){
         var sql = 'INSERT INTO userdata (user_email, password) VALUES(?, ?)';
-        var params = [email, password];
+        var params = [req.query.email, req.query.password];
 
-        con.query(sql, params, function (error, results, fields) {
-            console.log('Request[SignUp] : email - ' + email + 'pw -' + password);
-
-            if(error){
-                console.log('Result[SignUp] : fail');
-                res.send('signUp_fail');
-            }
-            else{
-                console.log('Result[SignUp] : success');
-                
-                var sql = 'SELECT * FROM userdata WHERE user_email=? AND password=?';
-                var params = [email, password];
-                
-                con.query(sql, params, function (error, results, fields){
-                    var user_id = "";
-                    user_id += results[0].user_id;
-                    res.send(user_id); 
-                    console.log(user_id);
-                });
-            }
-        });
-    });
-
-    // 구글 회원가입 아이디 확인
-    var SignUpGoogleEmail = function(email){
-        var sql = 'INSERT INTO userdata (google_email) VALUES(?)';
-        var params = [email];
-
-        con.query(sql, params, function (error, results, fields) {
-            console.log('Request[SignUp_google] : email -' + email);
-
-            if(error){
-                console.log('Result[SignUp_google] : fail');
-                console.log(error);
-            }
-            else{
-                console.log('Result[SignUp_google] : success');
-            }
-        });
-    };
+        console.log('Request[SignUp] : email - ' + req.query.email + 'pw -' + req.query.password);
+        SignUpArknights(req, res, sql, params);
+    }
 
     // 유저 아이템리스트 받아오기
-    app.get('/Items', function(req, res){
+    var Items = function(req, res){
         var id = req.query.id;
         var sql = 'SELECT * FROM useritems WHERE owner_id=?';
         var params = [id];
         
-        con.query(sql, params, function (error, results, fields) {
-            console.log('Request[item] : ' + id);
-
-            if(results == ''){
-                console.log('Result[item] : fail');
-                res.send('');
-            }
-            else{     
-                console.log('Result[item] : success');
-                res.send(results);
-            }
-        });
-    });
+        console.log('Request[item] : ' + id);
+        SendUserItems(res, sql, params);
+    }
 
     // 유저 오퍼레이터 리스트 받아오기
-    app.get('/Operators', function(req, res){
-        var id = req.query.id;
+    var Operators = function(req, res){
         var sql = 'SELECT * FROM operator WHERE owner_id=?';
-        var params = [id];
+        var params = [req.query.id];
         
-        con.query(sql, params, function (error, results, fields) {
-            console.log('Request[operator] : ' + id);
-
-            if(results == ''){
-                console.log('Result[operator] : fail');
-                res.send('');
-            }
-            else{     
-                console.log('Result[operator] : success');
-                res.send(results);
-            }
-        });
-    });
+        console.log('Request[operator] : ' + req.query.id);
+        SendUserOperators(res, sql, params);
+    }
 
     // 상점 데이터 받아오기
-    app.get('/Shop', function(req, res){
-        var id = req.query.id;
+    var Shop = function(req, res){
         var menu = req.query.menu + '.json';
         var path = './shopData/' + menu
 
@@ -192,33 +82,15 @@ module.exports = function(app){
             else{   
                 // 해당 아이디의 구매목록 불러오기(매진 체크)
                 var sql = 'SELECT * FROM purchase WHERE purchase_id=?';
-                var params = [id];
-                con.query(sql, params, function (error, results, fields) {
-                    if(error){
-                        res.send('');
-                    }else{
-                        var dataJSON = JSON.parse(data.toString());
-
-                        for(var index in results){
-                            if(menu == 'Shop_Originite_Prime.json' && results[index].shop_menu == 1){
-                                dataJSON[results[index].purchase_goods].sold_out = true;
-                            }
-                            else if(menu == 'Shop_Credit.json' && results[index].shop_menu == 6){
-                                dataJSON[results[index].purchase_goods].sold_out = true;
-                            }
-                        }
-                        console.log(dataJSON);
-                        res.send(dataJSON);
-                    }
-                });
-                        
-                console.log('Result[Shop] : success');
+                var params = [req.query.id];
+                
+                SendShopGoods(res, data, menu, sql, params);
             }
         });
-    });
+    }
 
     // 상점 상품 구입
-    app.get('/Purchase', function(req, res){
+    var Purchase = function(req, res){
         var id = req.query.id;
         var menu = req.query.menu;
         var number = req.query.number;
@@ -263,7 +135,7 @@ module.exports = function(app){
                 }
             }
         });
-    });
+    }
 
     // 아이템 구매기록
     var PurchaseItem = function(id, menu, number, price){
@@ -329,36 +201,16 @@ module.exports = function(app){
     };
 
     // 팀 조회
-    app.get('/Teams', function(req, res){
-        var id = req.query.id;
+    var Teams = function(req, res){
         var sql = 'SELECT teams FROM userdata WHERE user_id=?';
-        var params = [id];
+        var params = [req.query.id];
 
-        con.query(sql, params, function (error, results, fields) {
-            console.log('Request[Teams] : ' + id);
-            console.log(results[0]);
-
-            if(results[0].teams == null){
-                var path = './TeamData/Empty_Team.json';
-                fs.readFile(path, function(err, data){
-                    if(err){
-                        res.send('');
-                        console.log(err);
-                    } 
-                    else{   
-                        res.send(data.toString());
-                        //console.log(data.toString());
-                    }
-                });
-            }
-            else{
-                res.send(results[0].teams);
-            }
-        });
-    });
+        console.log('Request[Teams] : ' + req.query.id);
+        SendUserTeams(res, sql, params);
+    }
 
     // 팀 편성
-    app.post('/TeamsChange', function(req, res){
+    var TeamsChange = function(req, res){
         var id = req.query.id;
         var teams = JSON.stringify(req.body)
 
@@ -372,5 +224,158 @@ module.exports = function(app){
                 console.log(error);
             }
         });
-    });
+    }
+
+//// Send Module /////////////////////////////////////
+
+    var CheckArknightsLoginData = function(res, sql, params){
+        con.query(sql, params, function (error, results, fields) {
+            if(results == ''){
+                console.log('Result[Check] : fail');
+                res.send('check_fail');
+            }
+            else{     
+                console.log('Result[Check] : success');
+                res.send(results[0].user_id);
+            }
+        });
+    }
+    
+    var CheckGoogleLoginData = function(res, googleEmail, sql, params){
+        con.query(sql, params, function (error, results, fields) {
+            if(results == ''){
+                SignUpGoogleEmail(req, res, googleEmail);
+            }
+            else{     
+                console.log('Result[Check] : success');
+                res.send(results[0].user_id);
+            }
+        });
+    }
+
+    var SignUpArknights = function(req, res, sql, params){
+        con.query(sql, params, function (error, results, fields) {
+            if(error){
+                console.log('Result[SignUp] : fail');
+                res.send('signUp_fail');
+            }
+            else{
+                console.log('Result[SignUp] : success');
+                ArknightsLogin(req, res);          
+            }
+        });
+    }
+
+    var SignUpGoogleEmail = function(req, res, googleEmail){
+        var sql = 'INSERT INTO userdata (google_email) VALUES(?)';
+        var params = [googleEmail];
+
+        console.log('Request[SignUp_google] : email -' + googleEmail);
+        con.query(sql, params, function (error, results, fields) {
+            if(error){
+                console.log('Result[SignUp_google] : fail');
+                console.log(error);
+            }
+            else{
+                console.log('Result[SignUp_google] : success');
+                CheckGoogleLoginData(req, res);
+            }
+        });
+    };
+
+    var LoginResult = function(res, sql, params){
+        con.query(sql, params, function (error, results, fields) {
+            if(results == ''){
+                console.log('Result[Login] : fail');
+                res.send('login_fail');
+            }
+            else{     
+                console.log('Result[Login] : success');
+                console.log(results);
+                res.send(results);
+            }
+        });
+    }
+
+    var SendUserItems = function(res, sql, params){
+        con.query(sql, params, function (error, results, fields) {
+            if(results == ''){
+                console.log('Result[item] : fail');
+                res.send('');
+            }
+            else{     
+                console.log('Result[item] : success');
+                res.send(results);
+            }
+        });
+    }
+
+    var SendUserOperators = function(res, sql, params){
+        con.query(sql, params, function (error, results, fields) {
+            if(results == ''){
+                console.log('Result[operator] : fail');
+                res.send('');
+            }
+            else{     
+                console.log('Result[operator] : success');
+                res.send(results);
+            }
+        });
+    }
+
+    var SendShopGoods = function(res, data, menu, sql, params){
+        con.query(sql, params, function (error, results, fields) {
+            if(error){
+                res.send('');
+            }else{
+                var dataJSON = JSON.parse(data.toString());
+
+                for(var index in results){
+                    if(menu == 'Shop_Originite_Prime.json' && results[index].shop_menu == 1){
+                        dataJSON[results[index].purchase_goods].sold_out = true;
+                    }
+                    else if(menu == 'Shop_Credit.json' && results[index].shop_menu == 6){
+                        dataJSON[results[index].purchase_goods].sold_out = true;
+                    }
+                }
+                console.log(dataJSON);
+                res.send(dataJSON);
+            }
+        });
+                
+        console.log('Result[Shop] : success');
+    }
+
+    var SendUserTeams = function(res, sql, params){
+        con.query(sql, params, function (error, results, fields) {
+            if(results[0].teams == null){
+                var path = './TeamData/Empty_Team.json';
+                fs.readFile(path, function(err, data){
+                    if(err){
+                        res.send('');
+                        console.log(err);
+                    } 
+                    else{   
+                        res.send(data.toString());
+                    }
+                });
+            }
+            else{
+                res.send(results[0].teams);
+            }
+        });
+    }
+
+//// GET, POST /////////////////////////////////////
+
+    app.get('/CheckArknightsEmail', ArknightsLogin);
+    app.get('/CheckGoogleEmail', GoogleLogin);
+    app.get('/Login', Login);
+    app.get('/SignUp', SignUp);
+    app.get('/Items', Items);
+    app.get('/Operators', Operators);
+    app.get('/Shop', Shop);
+    app.get('/Purchase', Purchase);
+    app.get('/Teams', Teams);
+    app.post('/TeamsChange', TeamsChange);
 }
