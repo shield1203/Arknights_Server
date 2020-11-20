@@ -211,17 +211,41 @@ module.exports = function(app){
 
     // 팀 편성
     var TeamsChange = function(req, res){
-        var id = req.query.id;
         var teams = JSON.stringify(req.body)
 
         console.log('Request[TeamChange] : ' + teams);
 
         var sql = 'UPDATE userdata SET teams=? WHERE user_id=?';
-        var params = [teams, id];
+        var params = [teams, req.query.id];
 
         con.query(sql, params, function (error, results, fields) {
             if(error){
                 console.log(error);
+            }
+        });
+    }
+
+    // 클리어 작전 조회
+    var Operations = function(req, res){
+        var sql = 'SELECT episode, chapter, clear_rank FROM operation WHERE user_id=?';
+        var params = [req.query.id];
+
+        console.log('Request[Operations] : ' + req.query.id);
+        SendUserOperations(req, sql, params);
+    }
+
+    // 작전 클리어
+    var OperationClear = function(req, res){
+        var sql = 'SELECT * FROM operation WHERE clear_user_id=? AND episode=? AND chapter=?';
+        var params = [req.query.id, req.query.episode, req.query.chapter];
+
+        console.log('Request[OperationClear] : ' + req.query.id);
+        con.query(sql, params, function (error, results, fields) {
+            if(results = ''){
+                InputOperationData(req.query.id, req.query.episode, req.query.chapter, req.query.clear_rank);
+            }
+            else{
+                UpdateOperationData(req.query.id, req.query.episode, req.query.chapter, req.query.clear_rank);
             }
         });
     }
@@ -371,6 +395,46 @@ module.exports = function(app){
         });
     }
 
+    var SendUserOperations = function(req, sql, params){
+        con.query(sql, params, function (error, results, fields) {
+            if(error){
+                console.log(error);
+            }
+            else{     
+                console.log('Result[operation] : success');
+                res.send(results);
+            }
+        });
+    }
+
+    var InputOperationData = function(id, episode, chapter, clear_rank){
+        var sql = 'INSERT INTO operation (clear_user_id, episode, chapter, clear_rank) VALUES(?, ?, ?, ?)';
+        var params = [id, episode, chapter, clear_rank];
+
+        con.query(sql, params, function (error, results, fields) {
+            if(error){
+                console.log(error);
+            }
+            else{     
+                console.log('Result[inputOperationData] : id-' + id + ', operation' + episode + '-' + chapter + ' rank-' + clear_rank);
+            }
+        });
+    }
+
+    var UpdateOperationData = function(id, episode, chapter, clear_rank){
+        var sql = 'UPDATE operation SET clear_rank=? WHERE clear_user_id=? AND episode=? AND chapter=? ';
+        var params = [clear_rank, id, episode, chapter];
+
+        con.query(sql, params, function (error, results, fields) {
+            if(error){
+                console.log(error);
+            }
+            else{     
+                console.log('Result[updateOperationData] : id-' + id + ', operation' + episode + '-' + chapter + ' rank-' + clear_rank);
+            }
+        });
+    }
+
 //// GET, POST /////////////////////////////////////
 
     app.get('/CheckArknightsEmail', ArknightsLogin);
@@ -383,4 +447,6 @@ module.exports = function(app){
     app.get('/Purchase', Purchase);
     app.get('/Teams', Teams);
     app.post('/TeamsChange', TeamsChange);
+    app.get('/Operations', Operations);
+    app.get('/OperationClear', OperationClear);
 }
