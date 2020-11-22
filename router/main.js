@@ -227,11 +227,11 @@ module.exports = function(app){
 
     // 클리어 작전 조회
     var Operations = function(req, res){
-        var sql = 'SELECT episode, chapter, clear_rank FROM operation WHERE user_id=?';
+        var sql = 'SELECT episode, chapter, clear_rank FROM operation WHERE clear_user_id=?';
         var params = [req.query.id];
 
         console.log('Request[Operations] : ' + req.query.id);
-        SendUserOperations(req, sql, params);
+        SendUserOperations(res, sql, params);
     }
 
     // 작전 클리어
@@ -395,7 +395,7 @@ module.exports = function(app){
         });
     }
 
-    var SendUserOperations = function(req, sql, params){
+    var SendUserOperations = function(res, sql, params){
         con.query(sql, params, function (error, results, fields) {
             if(error){
                 console.log(error);
