@@ -44,7 +44,6 @@ build/Release
 # Dependency directories
 node_modules/
 jspm_packages/
-router/dbData.js
 
 # TypeScript v1 declaration files
 typings/
@@ -114,3 +113,4 @@ dist
 .vscode-test
 
 # End of https://www.toptal.com/developers/gitignore/api/node
+/router/dbData.js
