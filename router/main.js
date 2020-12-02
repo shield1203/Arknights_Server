@@ -1,10 +1,10 @@
 const { json } = require('body-parser');
 
 module.exports = function(app){
-    var mysql = require('mysql');
-    var dbData = require('./dbData');
-    var con = mysql.createConnection(dbData);
-    var fs = require('fs');
+    const mysql = require('mysql');
+    const dbData = require('./dbData');
+    const con = mysql.createConnection(dbData);
+    const fs = require('fs');
     
     app.get('/', function(req, res, next){
         res.send('ArKnights Server Page');
@@ -14,64 +14,63 @@ module.exports = function(app){
 //// Router module //////////////////////////////////
 
     // 일반 로그인 아이디 체크
-    var ArknightsLogin = function(req, res){
-        var sql = 'SELECT * FROM userdata WHERE user_email=? AND password=?';
-        var params = [req.query.email, req.query.password];
+    const ArknightsLogin = function(req, res){
+        const sql = 'SELECT * FROM userdata WHERE user_email=? AND password=?';
+        const params = [req.query.email, req.query.password];
         
         console.log('Request[Check] : ' + req.query.email);
         CheckArknightsLoginData(res, sql, params);
     }
 
     // 구글 로그인 아이디체크
-    var GoogleLogin = function(req, res){
-        var sql = 'SELECT * FROM userdata WHERE google_email=?';
-        var params = [req.query.googleEmail];
+    const GoogleLogin = function(req, res){
+        const sql = 'SELECT * FROM userdata WHERE google_email=?';
+        const params = [req.query.googleEmail];
         
         console.log('Request[Check] : ' + req.query.googleEmail);
         CheckGoogleLoginData(res, req.query.googleEmail, sql, params);
     }
     
     // 로그인
-    var Login = function(req, res){
-        var sql = 'SELECT * FROM userdata WHERE user_id=?';
-        var params = [req.query.id];
+    const Login = function(req, res){
+        const sql = 'SELECT * FROM userdata WHERE user_id=?';
+        const params = [req.query.id];
         
         console.log('Request[Login] :' + req.query.id);
         LoginResult(res, sql, params);
     }
 
     // 회원가입
-    var SignUp = function(req, res){
-        var sql = 'INSERT INTO userdata (user_email, password) VALUES(?, ?)';
-        var params = [req.query.email, req.query.password];
+    const SignUp = function(req, res){
+        const sql = 'INSERT INTO userdata (user_email, password) VALUES(?, ?)';
+        const params = [req.query.email, req.query.password];
 
         console.log('Request[SignUp] : email - ' + req.query.email + 'pw -' + req.query.password);
         SignUpArknights(req, res, sql, params);
     }
 
     // 유저 아이템리스트 받아오기
-    var Items = function(req, res){
-        var id = req.query.id;
-        var sql = 'SELECT * FROM useritems WHERE owner_id=?';
-        var params = [id];
+    const Items = function(req, res){
+        const sql = 'SELECT * FROM useritems WHERE owner_id=?';
+        const params = [req.query.id];
         
-        console.log('Request[item] : ' + id);
+        console.log('Request[item] : ' + req.query.id);
         SendUserItems(res, sql, params);
     }
 
     // 유저 오퍼레이터 리스트 받아오기
-    var Operators = function(req, res){
-        var sql = 'SELECT * FROM operator WHERE owner_id=?';
-        var params = [req.query.id];
+    const Operators = function(req, res){
+        const sql = 'SELECT * FROM operator WHERE owner_id=?';
+        const params = [req.query.id];
         
         console.log('Request[operator] : ' + req.query.id);
         SendUserOperators(res, sql, params);
     }
 
     // 상점 데이터 받아오기
-    var Shop = function(req, res){
-        var menu = req.query.menu + '.json';
-        var path = './shopData/' + menu
+    const Shop = function(req, res){
+        const menu = req.query.menu + '.json';
+        const path = './shopData/' + menu
 
         fs.readFile(path, function(err, data){
             if(err){
@@ -81,8 +80,8 @@ module.exports = function(app){
             } 
             else{   
                 // 해당 아이디의 구매목록 불러오기(매진 체크)
-                var sql = 'SELECT * FROM purchase WHERE purchase_id=?';
-                var params = [req.query.id];
+                const sql = 'SELECT * FROM purchase WHERE purchase_id=?';
+                const params = [req.query.id];
                 
                 SendShopGoods(res, data, menu, sql, params);
             }
@@ -90,13 +89,13 @@ module.exports = function(app){
     }
 
     // 상점 상품 구입
-    var Purchase = function(req, res){
-        var id = req.query.id;
-        var menu = req.query.menu;
-        var number = req.query.number;
-        var path;
+    const Purchase = function(req, res){
+        const id = req.query.id;
+        const menu = req.query.menu;
+        const number = req.query.number;
+        let path;
 
-        console.log('구매');
+        console.log('Purchase');
 
         if(menu == 1){
             path = './shopData/Shop_Originite_Prime.json';  
@@ -112,16 +111,17 @@ module.exports = function(app){
                 console.log(err);
             } 
             else{   
-                var dataJSON = JSON.parse(data.toString());
+                const dataJSON = JSON.parse(data.toString());
 
-                var itemCode;
+                let itemCode;
                 if(menu == 1){
                     itemCode = 18;
                 }else if(menu == 6){
                     itemCode = dataJSON[number].itemCode;
                 }
-                var amount = dataJSON[number].amount;
-                var price = dataJSON[number].price;
+
+                const amount = dataJSON[number].amount;
+                const price = dataJSON[number].price;
 
                 if(PurchaseItem(id, menu, number, price)){
                     UpdateUserItem(id, itemCode, amount);
@@ -138,9 +138,9 @@ module.exports = function(app){
     }
 
     // 아이템 구매기록
-    var PurchaseItem = function(id, menu, number, price){
-        var sql = 'INSERT INTO purchase (purchase_id, shop_menu, purchase_goods) VALUES(?, ?, ?)';
-        var params = [id, menu, number];
+    const PurchaseItem = function(id, menu, number, price){
+        const sql = 'INSERT INTO purchase (purchase_id, shop_menu, purchase_goods) VALUES(?, ?, ?)';
+        const params = [id, menu, number];
 
         con.query(sql, params, function (error, results, fields) {
             console.log('Request[Purchase] : ' + id + ', ' + menu + ', ' + number);
@@ -154,7 +154,7 @@ module.exports = function(app){
         });
 
         if(menu == 6){
-            var itemCode = 19;
+            const itemCode = 19;
             UpdateUserItem(id, itemCode, -price);
         }
 
@@ -162,9 +162,9 @@ module.exports = function(app){
     };
 
     // 아이템 업데이트 - 수량 변경 또는 생성
-    var UpdateUserItem = function(id, item_code, amount){
-        var sql = 'SELECT * FROM useritems WHERE owner_id=? AND item_code=?';
-        var params = [id, item_code];
+    const UpdateUserItem = function(id, item_code, amount){
+        const sql = 'SELECT * FROM useritems WHERE owner_id=? AND item_code=?';
+        const params = [id, item_code];
 
         con.query(sql, params, function (error, results, fields) {
             if(error){
@@ -201,22 +201,22 @@ module.exports = function(app){
     };
 
     // 팀 조회
-    var Teams = function(req, res){
-        var sql = 'SELECT teams FROM userdata WHERE user_id=?';
-        var params = [req.query.id];
+    const Teams = function(req, res){
+        const sql = 'SELECT teams FROM userdata WHERE user_id=?';
+        const params = [req.query.id];
 
         console.log('Request[Teams] : ' + req.query.id);
         SendUserTeams(res, sql, params);
     }
 
     // 팀 편성
-    var TeamsChange = function(req, res){
-        var teams = JSON.stringify(req.body)
+    const TeamsChange = function(req, res){
+        const teams = JSON.stringify(req.body)
 
         console.log('Request[TeamChange] : ' + teams);
 
-        var sql = 'UPDATE userdata SET teams=? WHERE user_id=?';
-        var params = [teams, req.query.id];
+        const sql = 'UPDATE userdata SET teams=? WHERE user_id=?';
+        const params = [teams, req.query.id];
 
         con.query(sql, params, function (error, results, fields) {
             if(error){
@@ -226,18 +226,18 @@ module.exports = function(app){
     }
 
     // 클리어 작전 조회
-    var Operations = function(req, res){
-        var sql = 'SELECT episode, chapter, clear_rank FROM operation WHERE clear_user_id=?';
-        var params = [req.query.id];
+    const Operations = function(req, res){
+        const sql = 'SELECT episode, chapter, clear_rank FROM operation WHERE clear_user_id=?';
+        const params = [req.query.id];
 
         console.log('Request[Operations] : ' + req.query.id);
         SendUserOperations(res, sql, params);
     }
 
     // 작전 클리어
-    var OperationClear = function(req, res){
-        var sql = 'SELECT * FROM operation WHERE clear_user_id=? AND episode=? AND chapter=?';
-        var params = [req.query.id, req.query.episode, req.query.chapter];
+    const OperationClear = function(req, res){
+        const sql = 'SELECT * FROM operation WHERE clear_user_id=? AND episode=? AND chapter=?';
+        const params = [req.query.id, req.query.episode, req.query.chapter];
 
         console.log('Request[OperationClear] : ' + req.query.id);
         con.query(sql, params, function (error, results, fields) {
@@ -252,7 +252,7 @@ module.exports = function(app){
 
 //// Send Module /////////////////////////////////////
 
-    var CheckArknightsLoginData = function(res, sql, params){
+    const CheckArknightsLoginData = function(res, sql, params){
         con.query(sql, params, function (error, results, fields) {
             if(results == ''){
                 console.log('Result[Check] : fail');
@@ -260,28 +260,28 @@ module.exports = function(app){
             }
             else{     
                 console.log('Result[Check] : success');
-                var id = "";
+                let id = "";
                 id += results[0].user_id;
                 res.send(id);
             }
         });
     }
     
-    var CheckGoogleLoginData = function(res, googleEmail, sql, params){
+    const CheckGoogleLoginData = function(res, googleEmail, sql, params){
         con.query(sql, params, function (error, results, fields) {
             if(results == ''){
                 SignUpGoogleEmail(req, res, googleEmail);
             }
             else{     
                 console.log('Result[Check] : success');
-                var id = "";
+                let id = "";
                 id += results[0].user_id;
                 res.send(id);
             }
         });
     }
 
-    var SignUpArknights = function(req, res, sql, params){
+    const SignUpArknights = function(req, res, sql, params){
         con.query(sql, params, function (error, results, fields) {
             if(error){
                 console.log('Result[SignUp] : fail');
@@ -294,9 +294,9 @@ module.exports = function(app){
         });
     }
 
-    var SignUpGoogleEmail = function(req, res, googleEmail){
-        var sql = 'INSERT INTO userdata (google_email) VALUES(?)';
-        var params = [googleEmail];
+    const SignUpGoogleEmail = function(req, res, googleEmail){
+        const sql = 'INSERT INTO userdata (google_email) VALUES(?)';
+        const params = [googleEmail];
 
         console.log('Request[SignUp_google] : email -' + googleEmail);
         con.query(sql, params, function (error, results, fields) {
@@ -311,7 +311,7 @@ module.exports = function(app){
         });
     };
 
-    var LoginResult = function(res, sql, params){
+    const LoginResult = function(res, sql, params){
         console.log('ddd');
         con.query(sql, params, function (error, results, fields) {
             if(results == ''){
@@ -326,7 +326,7 @@ module.exports = function(app){
         });
     }
 
-    var SendUserItems = function(res, sql, params){
+    const SendUserItems = function(res, sql, params){
         con.query(sql, params, function (error, results, fields) {
             if(results == ''){
                 console.log('Result[item] : fail');
@@ -339,7 +339,7 @@ module.exports = function(app){
         });
     }
 
-    var SendUserOperators = function(res, sql, params){
+    const SendUserOperators = function(res, sql, params){
         con.query(sql, params, function (error, results, fields) {
             if(results == ''){
                 console.log('Result[operator] : fail');
@@ -352,14 +352,14 @@ module.exports = function(app){
         });
     }
 
-    var SendShopGoods = function(res, data, menu, sql, params){
+    const SendShopGoods = function(res, data, menu, sql, params){
         con.query(sql, params, function (error, results, fields) {
             if(error){
                 res.send('');
             }else{
-                var dataJSON = JSON.parse(data.toString());
+                let dataJSON = JSON.parse(data.toString());
 
-                for(var index in results){
+                for(let index in results){
                     if(menu == 'Shop_Originite_Prime.json' && results[index].shop_menu == 1){
                         dataJSON[results[index].purchase_goods].sold_out = true;
                     }
@@ -375,11 +375,10 @@ module.exports = function(app){
         console.log('Result[Shop] : success');
     }
 
-    var SendUserTeams = function(res, sql, params){
+    const SendUserTeams = function(res, sql, params){
         con.query(sql, params, function (error, results, fields) {
             if(results[0].teams == null){
-                var path = './TeamData/Empty_Team.json';
-                fs.readFile(path, function(err, data){
+                fs.readFile('./TeamData/Empty_Team.json', function(err, data){
                     if(err){
                         res.send('');
                         console.log(err);
@@ -395,7 +394,7 @@ module.exports = function(app){
         });
     }
 
-    var SendUserOperations = function(res, sql, params){
+    const SendUserOperations = function(res, sql, params){
         con.query(sql, params, function (error, results, fields) {
             if(error){
                 console.log(error);
@@ -407,9 +406,9 @@ module.exports = function(app){
         });
     }
 
-    var InputOperationData = function(id, episode, chapter, clear_rank){
-        var sql = 'INSERT INTO operation (clear_user_id, episode, chapter, clear_rank) VALUES(?, ?, ?, ?)';
-        var params = [id, episode, chapter, clear_rank];
+    const InputOperationData = function(id, episode, chapter, clear_rank){
+        const sql = 'INSERT INTO operation (clear_user_id, episode, chapter, clear_rank) VALUES(?, ?, ?, ?)';
+        const params = [id, episode, chapter, clear_rank];
 
         con.query(sql, params, function (error, results, fields) {
             if(error){
@@ -421,9 +420,9 @@ module.exports = function(app){
         });
     }
 
-    var UpdateOperationData = function(id, episode, chapter, clear_rank){
-        var sql = 'UPDATE operation SET clear_rank=? WHERE clear_user_id=? AND episode=? AND chapter=? ';
-        var params = [clear_rank, id, episode, chapter];
+    const UpdateOperationData = function(id, episode, chapter, clear_rank){
+        const sql = 'UPDATE operation SET clear_rank=? WHERE clear_user_id=? AND episode=? AND chapter=? ';
+        const params = [clear_rank, id, episode, chapter];
 
         con.query(sql, params, function (error, results, fields) {
             if(error){

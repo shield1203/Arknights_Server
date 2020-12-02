@@ -1,11 +1,11 @@
-var express = require('express')
-var app = express();
+const express = require('express')
+const app = express();
 
 app.use(express.json())
 require('dotenv').config();
 
-var router = require('./router/main')(app);
+const router = require('./router/main')(app);
 
-var server = app.listen(process.env.PORT, function(){
+const server = app.listen(process.env.PORT, function(){
     console.log('Server start : project ArKnight');
 })
